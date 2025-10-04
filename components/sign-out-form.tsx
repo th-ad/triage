@@ -1,6 +1,6 @@
 import Form from "next/form";
-
-import { signOut } from "@/app/(auth)/auth";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const SignOutForm = () => {
   return (
@@ -8,9 +8,9 @@ export const SignOutForm = () => {
       action={async () => {
         "use server";
 
-        await signOut({
-          redirectTo: "/",
-        });
+        const cookieStore = await cookies();
+        cookieStore.delete("better-auth.session_token");
+        redirect("/");
       }}
       className="w-full"
     >

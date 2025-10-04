@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { guestRegex, isDevelopmentEnvironment } from "./lib/constants";
+import { getSessionCookie } from "better-auth/cookies";
+import { headers } from "next/headers";
+import { auth } from "./lib/auth";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -17,23 +18,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = await getToken({
-    req: request,
-    secret: process.env.AUTH_SECRET,
-    secureCookie: !isDevelopmentEnvironment,
-  });
+  const sessionCookie = getSessionCookie(request);
 
-  if (!token) {
-    const redirectUrl = encodeURIComponent(request.url);
-
-    return NextResponse.redirect(
-      new URL(`/api/auth/guest?redirectUrl=${redirectUrl}`, request.url)
-    );
-  }
-
-  const isGuest = guestRegex.test(token?.email ?? "");
-
-  if (token && !isGuest && ["/login", "/register"].includes(pathname)) {
+  // THIS IS NOT SECURE!
+  // This is the recommended approach to optimistically redirect users
+  // We recommend handling auth checks in each page/route
+  if (!sessionCookie) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 

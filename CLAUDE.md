@@ -64,11 +64,12 @@ This is a Next.js 15 AI chatbot template built with the AI SDK. It provides a fu
 
 3. **Authentication Flow**:
 
-   - NextAuth.js v5 with custom Credentials provider
-   - Supports both regular users and guest users
-   - Guest users are auto-created via `/api/auth/guest` when no token exists
-   - Middleware redirects unauthenticated users to guest flow
-   - Session data includes user type (`guest` | `regular`)
+   - Better Auth with Drizzle adapter
+   - Email/password authentication (for development)
+   - Configured for OAuth providers (Epic EHR for production)
+   - Session management via `auth.api.getSession()` on server
+   - Client-side hooks from `@/lib/auth-client`
+   - Middleware redirects unauthenticated users to login page
 
 4. **Database Layer**:
 
@@ -121,11 +122,16 @@ This is a Next.js 15 AI chatbot template built with the AI SDK. It provides a fu
 
 Required in `.env.local`:
 
-- `AUTH_SECRET` - NextAuth session secret (generate with `openssl rand -base64 32`)
+- `BETTER_AUTH_SECRET` - Better Auth session secret (generate with `openssl rand -base64 32`)
+- `BETTER_AUTH_URL` - Application base URL (e.g., `http://localhost:3000`)
 - `DATABASE_URL` - Database connection string
 - `BLOB_READ_WRITE_TOKEN` - Vercel Blob storage token
 - `REDIS_URL` - Redis connection for caching (optional)
 - `AI_GATEWAY_API_KEY` - Only required for non-Vercel deployments (Vercel uses OIDC)
+
+OAuth Provider Variables (when ready):
+- `EPIC_CLIENT_ID` - Epic OAuth client ID
+- `EPIC_CLIENT_SECRET` - Epic OAuth client secret
 
 ### Testing Environment
 

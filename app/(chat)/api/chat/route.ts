@@ -16,7 +16,6 @@ import {
 import type { ModelCatalog } from "tokenlens/core";
 import { fetchModels } from "tokenlens/fetch";
 import { getUsage } from "tokenlens/helpers";
-import { auth, type UserType } from "@/app/(auth)/auth";
 import type { VisibilityType } from "@/components/visibility-selector";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import type { ChatModel } from "@/lib/ai/models";
@@ -38,6 +37,7 @@ import {
   updateChatLastContextById,
 } from "@/lib/db/queries";
 import { ChatSDKError } from "@/lib/errors";
+import { requireSession } from "@/lib/session";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
@@ -107,16 +107,14 @@ export async function POST(request: Request) {
       selectedVisibilityType: VisibilityType;
     } = requestBody;
 
-    const session = await auth();
+    const session = await requireSession();
+    const userId = session.user.id;
 
-    if (!session?.user) {
-      return new ChatSDKError("unauthorized:chat").toResponse();
-    }
-
-    const userType: UserType = session.user.type;
+    // All users are treated as regular users (OAuth-based authentication)
+    const userType = "regular" as const;
 
     const messageCount = await getMessageCountByUserId({
-      id: session.user.id,
+      id: userId,
       differenceInHours: 24,
     });
 
@@ -127,7 +125,7 @@ export async function POST(request: Request) {
     const chat = await getChatById({ id });
 
     if (chat) {
-      if (chat.userId !== session.user.id) {
+      if (chat.userId !== userId) {
         return new ChatSDKError("forbidden:chat").toResponse();
       }
     } else {
@@ -137,7 +135,7 @@ export async function POST(request: Request) {
 
       await saveChat({
         id,
-        userId: session.user.id,
+        userId,
         title,
         visibility: selectedVisibilityType,
       });
@@ -315,15 +313,12 @@ export async function DELETE(request: Request) {
     return new ChatSDKError("bad_request:api").toResponse();
   }
 
-  const session = await auth();
-
-  if (!session?.user) {
-    return new ChatSDKError("unauthorized:chat").toResponse();
-  }
+  const session = await requireSession();
+  const userId = session.user.id;
 
   const chat = await getChatById({ id });
 
-  if (chat?.userId !== session.user.id) {
+  if (chat?.userId !== userId) {
     return new ChatSDKError("forbidden:chat").toResponse();
   }
 
