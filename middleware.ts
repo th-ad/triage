@@ -1,6 +1,6 @@
-import { type NextRequest, NextResponse } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 import { headers } from "next/headers";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "./lib/auth";
 
 export async function middleware(request: NextRequest) {
@@ -18,14 +18,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const sessionCookie = getSessionCookie(request);
+  // const sessionCookie = getSessionCookie(request);
 
   // THIS IS NOT SECURE!
   // This is the recommended approach to optimistically redirect users
   // We recommend handling auth checks in each page/route
-  if (!sessionCookie) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
+  // if (!sessionCookie && !["/login", "/register"].includes(pathname)) {
+  //   return NextResponse.redirect(new URL(pathname, request.url));
+  // }
 
   return NextResponse.next();
 }

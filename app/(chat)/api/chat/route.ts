@@ -43,6 +43,9 @@ import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
+import { FhirClient } from "@/lib/fhir-client";
+import { auth } from "@/lib/auth";
+import { getAppointmentSearch } from "@/lib/ai/tools/get-appointment-search";
 
 export const maxDuration = 60;
 
@@ -55,13 +58,13 @@ const getTokenlensCatalog = cache(
     } catch (err) {
       console.warn(
         "TokenLens: catalog fetch failed, using default catalog",
-        err
+        err,
       );
       return; // tokenlens helpers will fall back to defaultCatalog
     }
   },
   ["tokenlens-catalog"],
-  { revalidate: 24 * 60 * 60 } // 24 hours
+  { revalidate: 24 * 60 * 60 }, // 24 hours
 );
 
 export function getStreamContext() {
@@ -73,7 +76,7 @@ export function getStreamContext() {
     } catch (error: any) {
       if (error.message.includes("REDIS_URL")) {
         console.log(
-          " > Resumable streams are disabled due to missing REDIS_URL"
+          " > Resumable streams are disabled due to missing REDIS_URL",
         );
       } else {
         console.error(error);
@@ -108,7 +111,10 @@ export async function POST(request: Request) {
     } = requestBody;
 
     const session = await requireSession();
-    const userId = session.user.id;
+    const fhirClient = new FhirClient({
+      accessToken: session.account.accessToken,
+      idToken: session.account.idToken,
+    });
 
     // All users are treated as regular users (OAuth-based authentication)
     const userType = "regular" as const;
@@ -181,21 +187,10 @@ export async function POST(request: Request) {
           experimental_activeTools:
             selectedChatModel === "chat-model-reasoning"
               ? []
-              : [
-                  "getWeather",
-                  "createDocument",
-                  "updateDocument",
-                  "requestSuggestions",
-                ],
+              : ["getAppointmentSearch"],
           experimental_transform: smoothStream({ chunking: "word" }),
           tools: {
-            getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
-            }),
+            getAppointmentSearch: getAppointmentSearch({ client: fhirClient }),
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
@@ -240,7 +235,7 @@ export async function POST(request: Request) {
         dataStream.merge(
           result.toUIMessageStream({
             sendReasoning: true,
-          })
+          }),
         );
       },
       generateId: generateUUID,
@@ -294,7 +289,7 @@ export async function POST(request: Request) {
     if (
       error instanceof Error &&
       error.message?.includes(
-        "AI Gateway requires a valid credit card on file to service requests"
+        "AI Gateway requires a valid credit card on file to service requests",
       )
     ) {
       return new ChatSDKError("bad_request:activate_gateway").toResponse();
