@@ -14,8 +14,8 @@ export type SearchParams = Record<
 >;
 
 export const GetAppointmentsParams = z.object({
-  date: z.date(),
-  serviceCategory: z.enum(["appointment", "surgery"]),
+  // date: z.date().optional(),
+  serviceCategory: z.enum(["appointment", "surgery"]).default("appointment"),
 });
 
 interface FhirClientOptions {
@@ -37,7 +37,8 @@ export class FhirClient {
     if (!sub) throw new Error("idToken missing `sub`");
 
     this.patientId = sub;
-    this.baseUrl = new URL("api/FHIR/R4/", ensureSlash(iss)).toString();
+    const baseUrl = ensureSlash(iss.replace(/\/oauth2$/, ""));
+    this.baseUrl = new URL("api/FHIR/R4/", baseUrl).toString();
 
     this.http = ky.create({
       prefixUrl: this.baseUrl,
@@ -48,14 +49,10 @@ export class FhirClient {
     });
   }
 
-  async getAppointments({
-    date,
-    serviceCategory,
-  }: z.infer<typeof GetAppointmentsParams>) {
+  async getAppointments(params: z.infer<typeof GetAppointmentsParams>) {
     let bundle = await this.search<Appointment>("Appointment", {
-      date: date.toString(),
       patient: this.patientId,
-      "service-category": serviceCategory,
+      "service-category": params.serviceCategory,
     });
     return FhirClient.resources<Appointment>(bundle);
   }

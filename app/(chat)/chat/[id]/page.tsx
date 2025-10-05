@@ -6,6 +6,7 @@ import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import { getChatById, getMessagesByChatId } from "@/lib/db/queries";
 import { getSession } from "@/lib/session";
 import { convertToUIMessages } from "@/lib/utils";
+import { FhirClient } from "@/lib/fhir-client";
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;

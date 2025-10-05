@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
-import { genericOAuth } from "better-auth/plugins";
+import { customSession, genericOAuth } from "better-auth/plugins";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { epic } from "./auth/social-providers/epic";
@@ -27,7 +27,7 @@ export const auth = betterAuth({
   },
   plugins: [
     customSession(async ({ user, session }) => {
-      const accounts = await getAccounts(session.session.userId);
+      const accounts = await getAccounts(session.userId);
       const account = accounts[0];
       return {
         account,

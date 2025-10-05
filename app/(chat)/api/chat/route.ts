@@ -111,6 +111,7 @@ export async function POST(request: Request) {
     } = requestBody;
 
     const session = await requireSession();
+    const userId = session.user.id;
     const fhirClient = new FhirClient({
       accessToken: session.account.accessToken,
       idToken: session.account.idToken,
