@@ -1,9 +1,21 @@
 import ky, { KyInstance } from "ky";
 import { decodeJwt } from "jose";
-import type { AdverseEvent, Appointment, Bundle, Resource } from "fhir/r4";
+import type {
+  AdverseEvent,
+  Appointment,
+  Bundle,
+  DocumentReference,
+  Encounter,
+  Resource,
+} from "fhir/r4";
 import { EpicJwtClaims } from "@/lib/auth/social-providers/epic";
 import { z } from "zod";
-import type { ReadAdverseEventParams, SearchAppointmentParams } from "./tools";
+import type {
+  ReadAdverseEventParams,
+  SearchAppointmentParams,
+  SearchDocumentReferenceParams,
+  SearchEncounterParams,
+} from "./tools";
 
 function ensureSlash(u: string) {
   return u.endsWith("/") ? u : u + "/";
@@ -55,6 +67,37 @@ export class FhirClient {
 
   async readAdverseEvent(params: ReadAdverseEventParams) {
     return this.read<AdverseEvent>("AdverseEvent", params.id);
+  }
+
+  async searchEncounter(params: SearchEncounterParams) {
+    const searchParams: Record<string, string | undefined> = {
+      patient: this.patientId,
+      class: params.class ?? undefined,
+      date: params.date ?? undefined,
+      identifier: params.identifier ?? undefined,
+      status: params.status ?? undefined,
+    };
+
+    let bundle = await this.search<Encounter>("Encounter", searchParams);
+    return FhirClient.resources<Encounter>(bundle);
+  }
+
+  async searchDocumentReference(params: SearchDocumentReferenceParams) {
+    const searchParams: Record<string, string | undefined> = {
+      patient: this.patientId,
+      category: params.category ?? undefined,
+      type: params.type ?? undefined,
+      date: params.date ?? undefined,
+      docstatus: params.docstatus ?? undefined,
+      encounter: params.encounter ?? undefined,
+      period: params.period ?? undefined,
+    };
+
+    let bundle = await this.search<DocumentReference>(
+      "DocumentReference",
+      searchParams,
+    );
+    return FhirClient.resources<DocumentReference>(bundle);
   }
 
   read<T extends Resource = Resource>(resourceType: string, id: string) {

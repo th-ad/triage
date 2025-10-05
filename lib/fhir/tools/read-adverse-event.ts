@@ -2,11 +2,13 @@ import { FhirClient } from "@/lib/fhir/client";
 import { Tool, tool } from "ai";
 import z from "zod";
 
-export const ReadAdverseEventParams = z.object({
+export const readAdverseEventParams = z.object({
   id: z
     .string()
     .describe("The FHIR ID of the AdverseEvent resource to retrieve"),
 });
+
+export type ReadAdverseEventParams = z.infer<typeof readAdverseEventParams>;
 
 export const readAdverseEvent = ({ client }: { client: FhirClient }): Tool => {
   return tool({
@@ -38,9 +40,9 @@ export const readAdverseEvent = ({ client }: { client: FhirClient }): Tool => {
       - Adverse events from other healthcare systems
       - Undocumented or potential events that haven't been formally recorded
     `,
-    inputSchema: ReadAdverseEventParams,
-    execute: (params: z.infer<typeof ReadAdverseEventParams>) => {
-      return client.readAdverseEvent(params.id);
+    inputSchema: readAdverseEventParams,
+    execute: (params: ReadAdverseEventParams) => {
+      return client.readAdverseEvent(params);
     },
   });
 };

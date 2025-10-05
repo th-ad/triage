@@ -6,6 +6,7 @@ import { DEFAULT_CHAT_MODEL } from "@/lib/ai/models";
 import { getChatById, getMessagesByChatId } from "@/lib/db/queries";
 import { getSession } from "@/lib/session";
 import { convertToUIMessages } from "@/lib/utils";
+import { FhirClient } from "@/lib/fhir/client";
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -36,6 +37,12 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   const cookieStore = await cookies();
   const chatModelFromCookie = cookieStore.get("chat-model");
+
+  const fhirClient = new FhirClient({
+    accessToken: session.account.accessToken,
+    idToken: session.account.idToken,
+  });
+  fhirClient.searchDocumentReference({});
 
   if (!chatModelFromCookie) {
     return (

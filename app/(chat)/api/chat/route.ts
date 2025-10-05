@@ -40,7 +40,12 @@ import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 import { FhirClient } from "@/lib/fhir/client";
-import { searchAppointment } from "@/lib/fhir/tools";
+import {
+  readAdverseEvent,
+  searchAppointment,
+  searchDocumentReference,
+  searchEncounter,
+} from "@/lib/fhir/tools";
 
 export const maxDuration = 60;
 
@@ -111,6 +116,8 @@ export async function POST(request: Request) {
       accessToken: session.account.accessToken,
       idToken: session.account.idToken,
     });
+    const encounters = fhirClient.searchEncounter({});
+    console.log(encounters);
 
     // All users are treated as regular users (OAuth-based authentication)
     const userType = "regular" as const;
@@ -183,10 +190,20 @@ export async function POST(request: Request) {
           experimental_activeTools:
             selectedChatModel === "chat-model-reasoning"
               ? []
-              : ["searchAppointment"],
+              : [
+                  "searchAppointment",
+                  "searchEncounter",
+                  "searchDocumentReference",
+                  "readAdverseEvent",
+                ],
           experimental_transform: smoothStream({ chunking: "word" }),
           tools: {
             searchAppointment: searchAppointment({ client: fhirClient }),
+            searchEncounter: searchEncounter({ client: fhirClient }),
+            searchDocumentReference: searchDocumentReference({
+              client: fhirClient,
+            }),
+            readAdverseEvent: readAdverseEvent({ client: fhirClient }),
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,

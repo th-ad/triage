@@ -83,11 +83,10 @@ export type SearchAppointmentParams = z.infer<typeof searchAppointmentParams>;
 Key considerations:
 
 - Use TypeScript enums for fixed value sets
-- Mark optional fields with `.nullable()` or `.default()` (NOT `.optional()` - see AI SDK documentation)
+- Mark optional fields with `.optional()` for parameters that can be omitted
+- Use `.default()` for parameters that should have a default value when omitted
 - Include validation constraints (min/max, regex patterns)
 - FHIR search parameters often use kebab-case (e.g., `service-category`)
-
-**Important**: The AI SDK requires using `.nullable()` instead of `.optional()` for optional parameters. This ensures the schema is properly serialized for tool calling.
 
 ### Step 4: Implement the FhirClient Method
 
@@ -165,7 +164,7 @@ export const searchAppointment = ({ client }: { client: FhirClient }): Tool => {
 };
 ```
 
-### Step 6: Write a Descriptive Tool Description
+### Step 5a: Write a Descriptive Tool Description
 
 The description is critical for the AI to understand when and how to use the tool. Start with the `Description` field from the endpoint definition in `epic_apis.json`, then enhance it with additional context.
 
@@ -204,7 +203,7 @@ description: `
 `,
 ```
 
-### Step 7: Type the Response (Optional)
+### Step 5b: Type the Response (Optional)
 
 If you need type safety for the response, import FHIR types:
 
@@ -249,9 +248,36 @@ The `fhir` package provides comprehensive TypeScript definitions for all FHIR R4
 - This returns an async generator that automatically follows `next` links
 - Use for operations that may return large result sets
 
+## Step 6: Register the Tool in the Chat Route
+
+After creating your tool, you need to register it in the chat route handler so the AI can use it.
+
+**Location:** `app/(chat)/api/chat/route.ts`
+
+1. **Import the tool function** at the top of the file with other FHIR tool imports
+
+2. **Add to `experimental_activeTools` array** (around line 186):
+   ```typescript
+   experimental_activeTools:
+     selectedChatModel === "chat-model-reasoning"
+       ? []
+       : ["searchAppointment", "searchEncounter", "yourNewTool"],
+   ```
+
+3. **Add to `tools` object** (around line 189):
+   ```typescript
+   tools: {
+     searchAppointment: searchAppointment({ client: fhirClient }),
+     searchEncounter: searchEncounter({ client: fhirClient }),
+     yourNewTool: yourNewTool({ client: fhirClient }),
+   },
+   ```
+
+**Note:** Tools are disabled for the reasoning model to prevent conflicts with its extended thinking process.
+
 ## Testing Your Tool
 
-1. Add the tool to the chat route's tool registry
+1. Add the tool to the chat route's tool registry (see Step 6 above)
 2. Test with various parameter combinations
 3. Verify the AI can call the tool appropriately based on the description
 4. Check that error handling works for invalid parameters
