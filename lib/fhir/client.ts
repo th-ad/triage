@@ -1,8 +1,9 @@
 import ky, { KyInstance } from "ky";
 import { decodeJwt } from "jose";
-import type { Appointment, Bundle, Resource } from "fhir/r4";
-import { EpicJwtClaims } from "./auth/social-providers/epic";
+import type { AdverseEvent, Appointment, Bundle, Resource } from "fhir/r4";
+import { EpicJwtClaims } from "@/lib/auth/social-providers/epic";
 import { z } from "zod";
+import type { ReadAdverseEventParams, SearchAppointmentParams } from "./tools";
 
 function ensureSlash(u: string) {
   return u.endsWith("/") ? u : u + "/";
@@ -12,11 +13,6 @@ export type SearchParams = Record<
   string,
   string | number | boolean | undefined
 >;
-
-export const GetAppointmentsParams = z.object({
-  // date: z.date().optional(),
-  serviceCategory: z.enum(["appointment", "surgery"]).default("appointment"),
-});
 
 interface FhirClientOptions {
   accessToken: string;
@@ -49,12 +45,16 @@ export class FhirClient {
     });
   }
 
-  async getAppointments(params: z.infer<typeof GetAppointmentsParams>) {
+  async searchAppointment(params: SearchAppointmentParams) {
     let bundle = await this.search<Appointment>("Appointment", {
       patient: this.patientId,
       "service-category": params.serviceCategory,
     });
     return FhirClient.resources<Appointment>(bundle);
+  }
+
+  async readAdverseEvent(params: ReadAdverseEventParams) {
+    return this.read<AdverseEvent>("AdverseEvent", params.id);
   }
 
   read<T extends Resource = Resource>(resourceType: string, id: string) {

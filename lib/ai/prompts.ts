@@ -32,7 +32,10 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
 
-export const regularPrompt =
+export const regularPrompt = `
+`;
+
+const pop =
   "You are a friendly assistant! Keep your responses concise and helpful.";
 
 export type RequestHints = {
@@ -98,7 +101,7 @@ You are a spreadsheet creation assistant. Create a spreadsheet in csv format bas
 
 export const updateDocumentPrompt = (
   currentContent: string | null,
-  type: ArtifactKind
+  type: ArtifactKind,
 ) => {
   let mediaType = "document";
 

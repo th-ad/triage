@@ -1,17 +1,20 @@
-import { FhirClient, GetAppointmentsParams } from "@/lib/fhir-client";
+import { FhirClient } from "@/lib/fhir/client";
 import { Tool, tool } from "ai";
 import z from "zod";
 
-export const getAppointmentSearch = ({
-  client,
-}: {
-  client: FhirClient;
-}): Tool => {
+export const searchAppointmentParams = z.object({
+  date: z.date().nullable(),
+  serviceCategory: z.enum(["appointment", "surgery"]).default("appointment"),
+});
+
+export type SearchAppointmentParams = z.infer<typeof searchAppointmentParams>;
+
+export const searchAppointment = ({ client }: { client: FhirClient }): Tool => {
   return tool({
     description: `
       This allows searching for appointments and scheduled surgical procedures.
       It returns patient's up-to-date appointment information, such as the appointment date and time, provider, and location.
-      
+
       When using the "appointment" service category, non-surgical scheduled appointments will be returned
 
       This might include appointment types such as
@@ -23,16 +26,16 @@ export const getAppointmentSearch = ({
       This will **not** include appointment types such as
       - Patient-submitted appointment requests that have not been scheduled
       - Book Anywhere appointments scheduled at other health systems
-    
+
       When using the "surgery" service category, scheduled surgical procedures will be returned
-      
+
       This might include appointment types such as
       - Scheduled surgeries
       - Scheduled interventional cardiology visits
     `,
-    inputSchema: GetAppointmentsParams,
-    execute: (params: z.infer<typeof GetAppointmentsParams>) => {
-      return client.getAppointments(params);
+    inputSchema: searchAppointmentParams,
+    execute: (params: SearchAppointmentParams) => {
+      return client.searchAppointment(params);
     },
   });
 };

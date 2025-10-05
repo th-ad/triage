@@ -21,10 +21,6 @@ import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import type { ChatModel } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
-import { createDocument } from "@/lib/ai/tools/create-document";
-import { getWeather } from "@/lib/ai/tools/get-weather";
-import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
-import { updateDocument } from "@/lib/ai/tools/update-document";
 import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
@@ -43,9 +39,8 @@ import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
-import { FhirClient } from "@/lib/fhir-client";
-import { auth } from "@/lib/auth";
-import { getAppointmentSearch } from "@/lib/ai/tools/get-appointment-search";
+import { FhirClient } from "@/lib/fhir/client";
+import { searchAppointment } from "@/lib/fhir/tools";
 
 export const maxDuration = 60;
 
@@ -188,10 +183,10 @@ export async function POST(request: Request) {
           experimental_activeTools:
             selectedChatModel === "chat-model-reasoning"
               ? []
-              : ["getAppointmentSearch"],
+              : ["searchAppointment"],
           experimental_transform: smoothStream({ chunking: "word" }),
           tools: {
-            getAppointmentSearch: getAppointmentSearch({ client: fhirClient }),
+            searchAppointment: searchAppointment({ client: fhirClient }),
           },
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
