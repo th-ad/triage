@@ -39,8 +39,8 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const chatModelFromCookie = cookieStore.get("chat-model");
 
   const fhirClient = new FhirClient({
-    accessToken: session.account.accessToken,
-    idToken: session.account.idToken,
+    accessToken: session.account?.accessToken ?? "",
+    idToken: session.account?.idToken ?? "",
   });
   const references = await fhirClient.searchEncounter({});
   console.log(references);

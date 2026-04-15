@@ -39,13 +39,13 @@ import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
 import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
-import { FhirClient } from "@/lib/fhir/client";
 import {
   readAdverseEvent,
   searchAppointment,
   searchDocumentReference,
   searchEncounter,
 } from "@/lib/fhir/tools";
+import { FhirClient } from "@/lib/fhir/client";
 import { createAgent } from "@/lib/ai/agents/clara";
 
 export const maxDuration = 60;
@@ -114,11 +114,9 @@ export async function POST(request: Request) {
     const session = await requireSession();
     const userId = session.user.id;
     const fhirClient = new FhirClient({
-      accessToken: session.account.accessToken,
-      idToken: session.account.idToken,
+      accessToken: session.account?.accessToken ?? "",
+      idToken: session.account?.idToken ?? "",
     });
-    const encounters = fhirClient.searchEncounter({});
-    console.log(encounters);
 
     // All users are treated as regular users (OAuth-based authentication)
     const userType = "regular" as const;
