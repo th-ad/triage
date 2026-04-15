@@ -25,12 +25,12 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        "chat-model": gateway.languageModel("xai/grok-2-vision-1212"),
+        "chat-model": gateway.languageModel("moonshotai/kimi-k2"),
         "chat-model-reasoning": wrapLanguageModel({
-          model: gateway.languageModel("xai/grok-3-mini"),
+          model: gateway.languageModel("moonshotai/kimi-k2"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
-        "title-model": gateway.languageModel("xai/grok-2-1212"),
-        "artifact-model": gateway.languageModel("xai/grok-2-1212"),
+        "title-model": gateway.languageModel("moonshotai/kimi-k2"),
+        "artifact-model": gateway.languageModel("moonshotai/kimi-k2"),
       },
     });

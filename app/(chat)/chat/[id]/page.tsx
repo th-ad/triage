@@ -42,7 +42,8 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     accessToken: session.account.accessToken,
     idToken: session.account.idToken,
   });
-  fhirClient.searchDocumentReference({});
+  const references = await fhirClient.searchEncounter({});
+  console.log(references);
 
   if (!chatModelFromCookie) {
     return (

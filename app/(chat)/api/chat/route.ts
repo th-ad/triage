@@ -46,6 +46,7 @@ import {
   searchDocumentReference,
   searchEncounter,
 } from "@/lib/fhir/tools";
+import { createAgent } from "@/lib/ai/agents/clara";
 
 export const maxDuration = 60;
 
@@ -186,7 +187,7 @@ export async function POST(request: Request) {
           model: myProvider.languageModel(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: convertToModelMessages(uiMessages),
-          stopWhen: stepCountIs(5),
+          stopWhen: stepCountIs(10),
           experimental_activeTools:
             selectedChatModel === "chat-model-reasoning"
               ? []
@@ -208,6 +209,8 @@ export async function POST(request: Request) {
           experimental_telemetry: {
             isEnabled: isProductionEnvironment,
             functionId: "stream-text",
+            recordInputs: false,
+            recordOutputs: false,
           },
           onFinish: async ({ usage }) => {
             try {

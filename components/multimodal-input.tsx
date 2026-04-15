@@ -103,7 +103,7 @@ function PureMultimodalInput({
 
   const [localStorageInput, setLocalStorageInput] = useLocalStorage(
     "input",
-    ""
+    "",
   );
 
   useEffect(() => {
@@ -203,7 +203,7 @@ function PureMultimodalInput({
     () => ({
       usage,
     }),
-    [usage]
+    [usage],
   );
 
   const handleFileChange = useCallback(
@@ -216,7 +216,7 @@ function PureMultimodalInput({
         const uploadPromises = files.map((file) => uploadFile(file));
         const uploadedAttachments = await Promise.all(uploadPromises);
         const successfullyUploadedAttachments = uploadedAttachments.filter(
-          (attachment) => attachment !== undefined
+          (attachment) => attachment !== undefined,
         );
 
         setAttachments((currentAttachments) => [
@@ -229,21 +229,11 @@ function PureMultimodalInput({
         setUploadQueue([]);
       }
     },
-    [setAttachments, uploadFile]
+    [setAttachments, uploadFile],
   );
 
   return (
     <div className={cn("relative flex w-full flex-col gap-4", className)}>
-      {messages.length === 0 &&
-        attachments.length === 0 &&
-        uploadQueue.length === 0 && (
-          <SuggestedActions
-            chatId={chatId}
-            selectedVisibilityType={selectedVisibilityType}
-            sendMessage={sendMessage}
-          />
-        )}
-
       <input
         className="-top-4 -left-4 pointer-events-none fixed size-0.5 opacity-0"
         multiple
@@ -275,7 +265,7 @@ function PureMultimodalInput({
                 key={attachment.url}
                 onRemove={() => {
                   setAttachments((currentAttachments) =>
-                    currentAttachments.filter((a) => a.url !== attachment.url)
+                    currentAttachments.filter((a) => a.url !== attachment.url),
                   );
                   if (fileInputRef.current) {
                     fileInputRef.current.value = "";
@@ -363,7 +353,7 @@ export const MultimodalInput = memo(
     }
 
     return true;
-  }
+  },
 );
 
 function PureAttachmentsButton({
@@ -409,7 +399,7 @@ function PureModelSelectorCompact({
   }, [selectedModelId]);
 
   const selectedModel = chatModels.find(
-    (model) => model.id === optimisticModelId
+    (model) => model.id === optimisticModelId,
   );
 
   return (
